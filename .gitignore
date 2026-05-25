@@ -1,0 +1,34 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Environment and Logs
+.env
+.venv
+env/
+venv/
+ENV/
+logs/
+checkpoints/
+scratch/
+results/
+*.zip
+mujoco_menagerie/
+
+# Allow specific model
+!models/sac_franka_se3_phase3_final.zip
+!models/sac_franka_se3_phase3_vec_normalize.pkl
+models/*.zip
+models/*.pkl
+
+# Exception for the specific model
+!models/sac_franka_se3_phase3_final.zip
+!models/sac_franka_se3_phase3_vec_normalize.pkl
+
+# Temporary files
+*.png
+*.mp4
+!results/plots/comparison.png
+!results/plots/fft_comparison.png
+!results/videos/tracking.mp4
