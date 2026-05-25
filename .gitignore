@@ -6,9 +6,7 @@ __pycache__/
 # Environment and Logs
 .env
 .venv
-env/
 venv/
-ENV/
 logs/
 checkpoints/
 scratch/

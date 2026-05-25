@@ -10,7 +10,6 @@ from scipy.fft import fft, fftfreq
 from stable_baselines3 import SAC
 from stable_baselines3.common.vec_env import DummyVecEnv, VecNormalize
 from env.franka_tracking_env import FrankaTrackingEnv
-from baseline.pd_controller import run_pd_episode
 import imageio
 
 def run_rl_episode(model, env, vec_norm=None, deterministic=True):
@@ -43,7 +42,16 @@ def quat_geodesic_error(q1: np.ndarray, q2: np.ndarray) -> np.ndarray:
     return 2.0 * np.arccos(dots)
 
 def compute_metrics(targets_pos, positions, quats=None,
-                    targets_quat=None, qaccs=None, dt=0.01):
+                    targets_quat=None, qaccs=None, dt=0.01, ignore_steps=250):
+    
+    # Discard the initial reaching phase so it doesn't skew steady-state tracking metrics
+    if len(targets_pos) > ignore_steps:
+        targets_pos = targets_pos[ignore_steps:]
+        positions = positions[ignore_steps:]
+        if quats is not None: quats = quats[ignore_steps:]
+        if targets_quat is not None: targets_quat = targets_quat[ignore_steps:]
+        if qaccs is not None: qaccs = qaccs[ignore_steps:]
+        
     pos_err = np.linalg.norm(targets_pos - positions, axis=1) * 100.0
     jerk    = np.diff(qaccs, axis=0) / dt if qaccs is not None else None
     out = {
@@ -57,33 +65,22 @@ def compute_metrics(targets_pos, positions, quats=None,
         out["Max Orient Error (rad)"]  = float(np.max(oe))
     return out
 
-def print_comparison(pd_metrics: dict, rl_metrics: dict):
-    print("\n=== Tracking Performance Comparison ===")
-    print(f"{'Metric':<30} {'PD Baseline':>14} {'SAC Policy':>12} {'Improvement':>12}")
-    print("-" * 72)
-    for k in pd_metrics:
-        pd_v = pd_metrics[k]
-        rl_v = rl_metrics.get(k, float("nan"))
-        if not np.isnan(pd_v) and not np.isnan(rl_v) and pd_v > 0:
-            impr = f"{(pd_v - rl_v) / pd_v * 100:+.1f}%"
-        else:
-            impr = "—"
-        print(f"{k:<30} {pd_v:>14.4f} {rl_v:>12.4f} {impr:>12}")
-    # Orientation — RL only
-    for k in rl_metrics:
-        if k not in pd_metrics:
-            print(f"{k:<30} {'N/A':>14} {rl_metrics[k]:>12.4f} {'—':>12}")
+def print_metrics(rl_metrics: dict):
+    print("\n=== Steady-State Tracking Performance ===")
+    print(f"{'Metric':<30} {'SAC Policy':>14}")
+    print("-" * 46)
+    for k, rl_v in rl_metrics.items():
+        print(f"{k:<30} {rl_v:>14.4f}")
 
-def plot_comparison(pd_res, rl_tp, rl_pos, rl_quats, rl_tq,
+def plot_tracking(rl_tp, rl_pos, rl_quats, rl_tq,
                     rl_actions, dt, out_dir):
-    t_pd = np.arange(len(pd_res["positions"])) * dt
-    t_rl = np.arange(len(rl_pos))              * dt
+    t_rl = np.arange(len(rl_pos)) * dt
 
     fig, axes = plt.subplots(1, 3, figsize=(16, 4))
 
     # 3D trajectory
     ax = fig.add_subplot(131, projection="3d")
-    ax.plot(*(pd_res["targets"].T * 100.0),   label="Target",  color="royalblue", lw=2)
+    ax.plot(*(rl_tp.T * 100.0),               label="Target",  color="royalblue", lw=2)
     ax.plot(*(rl_pos.T * 100.0),              label="SAC",     color="tomato",    lw=1.5, ls=":")
     
     # Mark Start and Finish
@@ -215,7 +212,7 @@ def main():
         print("No VecNormalize stats found, using raw observations.")
         vec_norm = None
 
-    pd_all_metrics, rl_all_metrics = [], []
+    rl_all_metrics = []
     
     # Setup directories for outputs
     os.makedirs("results/plots", exist_ok=True)
@@ -224,25 +221,19 @@ def main():
     for ep in range(args.n_episodes):
         # RL episode
         tp, tq, pos, quat, act, qacc = run_rl_episode(model, env, vec_norm)
-        rl_m = compute_metrics(tp, pos, quat, tq, qacc, dt)
+        rl_m = compute_metrics(tp, pos, quat, tq, qacc, dt, ignore_steps=250)
         rl_all_metrics.append(rl_m)
-
-        # PD baseline episode
-        pd_res = run_pd_episode(FrankaTrackingEnv())
-        pd_m   = compute_metrics(pd_res["targets"], pd_res["positions"],
-                                 qaccs=pd_res["qaccs"], dt=dt)
-        pd_all_metrics.append(pd_m)
 
         if ep == 0:
             print("Generating evaluation tracking and action FFT plots...")
-            plot_comparison(pd_res, tp, pos, quat, tq, act, dt, "results/plots")
+            plot_tracking(tp, pos, quat, tq, act, dt, "results/plots")
             record_video(model, "results/videos/tracking.mp4", vec_norm)
 
-    # Aggregate and print comparison
+    # Aggregate and print
     def mean_metrics(ms):
         return {k: float(np.mean([m[k] for m in ms])) for k in ms[0]}
 
-    print_comparison(mean_metrics(pd_all_metrics), mean_metrics(rl_all_metrics))
+    print_metrics(mean_metrics(rl_all_metrics))
     env.close()
 
 if __name__ == "__main__":

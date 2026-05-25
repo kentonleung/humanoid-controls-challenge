@@ -78,7 +78,7 @@ def main():
             eval_env,
             best_model_save_path=f"models",
             log_path=f"logs",
-            eval_freq=20_000,
+            eval_freq=max(20_000 // n_envs, 1),
             n_eval_episodes=3,
             deterministic=True,
         ),

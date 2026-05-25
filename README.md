@@ -22,7 +22,7 @@ pip install -r requirements.txt
 ```
 
 **Evaluation (See the Results):**
-To evaluate the pre-trained SAC policy against the analytical PD Baseline and generate the plots and videos:
+To evaluate the pre-trained SAC policy and generate the plots and videos:
 ```bash
 python evaluate.py --model models/sac_franka_se3_phase3_final
 ```
@@ -30,7 +30,7 @@ This script will output:
 1. `results/videos/tracking.mp4`: A 50 FPS video of the robot tracking the trajectory (red trail = robot, translucent blue = target).
 2. `results/plots/comparison.png`: A 3D trajectory plot and position/orientation error graphs.
 3. `results/plots/fft_comparison.png`: A frequency domain analysis of the joint torque commands.
-4. Terminal output showing MSE, Max Error, and Jerk RMS comparisons.
+4. Terminal output showing MSE, Max Error, and Jerk RMS.
 
 **Training from Scratch:**
 ```bash
@@ -58,16 +58,23 @@ To prove the robustness of the RL policy, I introduced two major sources of unce
 2. **Control Delay:** A 2-step (20ms) action buffer delay is simulated in the environment to replicate physical hardware latency. The agent successfully learned to anticipate the trajectory to counteract this delay.
 
 ### Evaluating Tracking Performance
-Tracking performance is evaluated strictly against a tuned analytical **Proportional-Derivative (PD) operational-space controller**. 
+To isolate true tracking performance from the initial "reaching" phase (where the arm moves from its home position to the start of the figure-eight), all metrics are calculated **only on the steady-state tracking phase** (discarding the first 2.5 seconds of the episode).
+
 I measure:
 1. **Position MSE (cm²):** To evaluate overall tracking tightness.
 2. **Max Position Error (cm):** To evaluate worst-case divergence.
 3. **Jerk RMS:** To evaluate the smoothness of the motion.
 4. **Action FFT Spectrum:** To prove the absence of high-frequency jitter or oscillations in the torque commands.
 
-Through these metrics, the SAC agent demonstrates sub-centimeter position tracking accuracy, significantly outperforming the classical PD baseline while maintaining smooth, jitter-free motion.
-
 ## 3. Results Overview
+
+### Steady-State Tracking Metrics
+* **Position MSE:** 0.24 cm² (Root Mean Square Error: **0.49 cm**)
+* **Max Position Error:** 1.59 cm
+* **Orientation MSE:** 2.78 rad²
+* **Jerk RMS:** 439.2
+
+The SAC agent achieves true sub-centimeter tracking accuracy against a moving target in 3D space, despite simulated sensor noise and control latency.
 
 ### Tracking Performance
 ![Tracking Performance Comparison](results/plots/comparison.png)
