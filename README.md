@@ -76,5 +76,4 @@ Through these metrics, the SAC agent demonstrates sub-centimeter position tracki
 ![Action FFT Spectrum](results/plots/fft_comparison.png)
 
 ### Video Demonstration
-[**Click here to watch the full 3D Tracking Video (results/videos/tracking.mp4)**](results/videos/tracking.mp4)
-*(Note: If viewing on GitHub, you can download or click the video link to play the MP4).*
+![Tracking Video Demonstration](results/videos/tracking.gif)

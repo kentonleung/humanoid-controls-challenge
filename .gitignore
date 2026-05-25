@@ -32,3 +32,4 @@ models/*.pkl
 !results/plots/comparison.png
 !results/plots/fft_comparison.png
 !results/videos/tracking.mp4
+!results/videos/tracking.gif
