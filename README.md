@@ -11,8 +11,8 @@ The environment is designed to be completely headless and runs on CPU (Linux or 
 **Installation:**
 ```bash
 # 1. Clone this repository
-git clone <your-repo-url>
-cd <your-repo-directory>
+git clone https://github.com/kentonleung/humanoid-controls-challenge.git
+cd humanoid-controls-challenge
 
 # 2. Download MuJoCo Menagerie (contains the Franka XML models)
 git clone https://github.com/google-deepmind/mujoco_menagerie.git
@@ -63,7 +63,7 @@ To isolate true tracking performance from the initial "reaching" phase (where th
 I measure:
 1. **Position MSE (cm²):** To evaluate overall tracking tightness.
 2. **Max Position Error (cm):** To evaluate worst-case divergence.
-3. **Jerk RMS:** To evaluate the smoothness of the motion.
+3. **Jerk RMS (rad/s³):** To evaluate the smoothness of the motion (derivative of joint acceleration).
 4. **Action FFT Spectrum:** To prove the absence of high-frequency jitter or oscillations in the torque commands.
 
 ## 3. Results Overview
@@ -72,7 +72,7 @@ I measure:
 * **Position MSE:** 0.24 cm² (Root Mean Square Error: **0.49 cm**)
 * **Max Position Error:** 1.59 cm
 * **Orientation MSE:** 2.78 rad²
-* **Jerk RMS:** 439.2
+* **Jerk RMS:** 439.2 rad/s³
 
 The SAC agent achieves true sub-centimeter tracking accuracy against a moving target in 3D space, despite simulated sensor noise and control latency.
 
