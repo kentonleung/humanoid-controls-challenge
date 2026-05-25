@@ -77,10 +77,16 @@ I measure:
 The SAC agent achieves true sub-centimeter tracking accuracy against a moving target in 3D space, despite simulated sensor noise and control latency.
 
 ### Tracking Performance
-![Tracking Performance Comparison](results/plots/comparison.png)
+<p align="center">
+  <img src="results/plots/comparison.png" width="100%">
+</p>
 
 ### Smoothness (Action Spectrum)
-![Action FFT Spectrum](results/plots/fft_comparison.png)
+<p align="center">
+  <img src="results/plots/fft_comparison.png" width="100%">
+</p>
 
 ### Video Demonstration
-![Tracking Video Demonstration](results/videos/tracking.gif)
+<p align="center">
+  <img src="results/videos/tracking.gif" width="100%">
+</p>
