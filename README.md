@@ -74,7 +74,7 @@ I measure:
 * **Orientation MSE:** 2.78 rad²
 * **Jerk RMS:** 439.2 rad/s³
 
-The SAC agent achieves true sub-centimeter tracking accuracy against a moving target in 3D space, despite simulated sensor noise and control latency.
+The SAC agent achieves true sub-centimeter tracking accuracy against a moving target in 3D space, despite simulated sensor noise and control latency. Orientation tracking is included as a curriculum extension and shows partial convergence at 1.5M steps — position accuracy was prioritised.
 
 ### Tracking Performance
 <p align="center">
